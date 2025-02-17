@@ -24,9 +24,12 @@ app.use("/customer/auth/*", function auth(req, res, next) {
       .status(401)
       .json({ message: "Unauthorized: No token Provided!" });
   }
-  jwt.verify(req.session.token,"fingerprint_customer",(err,decoded)=>{
+  jwt.verify(req.session.token,access,(err,user)=>{
     if(err){
-        return res.status(403).json({ message: "Forbidden: Invalid token" });
+      req.user = user;
+      next()
+    }else{
+      return res.status(403).json({ message: "Forbidden: Invalid token" });
     }
     req.user = decoded; 
         next();
