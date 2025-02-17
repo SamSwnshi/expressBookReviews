@@ -12,28 +12,31 @@ app.use(
   "/customer",
   session({
     secret: "fingerprint_customer",
-    resave: true,
+    resave: false,
     saveUninitialized: true,
   })
 );
 
 app.use("/customer/auth/*", function auth(req, res, next) {
-  //Write the authenication mechanism here
-  if (!req.session.token) {
+
+  if (!req.session.authorization || !req.session.authorization.accessToken) {
     return res
       .status(401)
       .json({ message: "Unauthorized: No token Provided!" });
   }
-  jwt.verify(req.session.token,access,(err,user)=>{
-    if(err){
-      req.user = user;
-      next()
-    }else{
-      return res.status(403).json({ message: "Forbidden: Invalid token" });
+
+
+  jwt.verify(
+    req.session.authorization.accessToken,
+    "access", 
+    (err, user) => {
+      if (err) {
+        return res.status(403).json({ message: "Forbidden: Invalid token" });
+      }
+      req.user = user; 
+      next(); 
     }
-    req.user = decoded; 
-        next();
-  });
+  );
 });
 
 const PORT = 5000;
